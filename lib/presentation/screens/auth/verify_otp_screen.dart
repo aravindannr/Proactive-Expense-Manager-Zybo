@@ -242,7 +242,8 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
               const SizedBox(height: 20),
 
               // Resend OTP timer
-              Center(
+              Align(
+                alignment: Alignment.centerLeft,
                 child: GestureDetector(
                   onTap: _resendSeconds == 0 ? _onResendOtp : null,
                   child: RichText(

@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:proactive_expense_manager/presentation/screens/auth/login_screen.dart';
 
@@ -69,83 +70,112 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Top bar with SKIP button
-            _buildTopBar(),
+      body: Stack(
+        children: [
+          // Full-screen background PageView
+          PageView.builder(
+            controller: _pageController,
+            itemCount: _pages.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentPage = index;
+              });
+            },
+            itemBuilder: (context, index) {
+              return Image.asset(
+                'assets/images/onboarding/walkthrough_bg.png',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+              );
+            },
+          ),
 
-            // PageView with background image area
-            Expanded(
-              flex: 5,
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: _pages.length,
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentPage = index;
-                  });
-                },
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Image.asset(
-                        'assets/images/onboarding/walkthrough_bg.png',
-                        fit: BoxFit.cover,
-                        width: double.infinity,
+          // Bottom gradient + blur overlay
+          _buildGradientOverlay(context),
+
+          // Content overlay (Skip, indicator, text, button)
+          SafeArea(
+            child: Column(
+              children: [
+                // Top bar with SKIP
+                _buildTopBar(),
+
+                const Spacer(),
+
+                // Bottom content area
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Page indicator bars
+                      _buildPageIndicator(),
+                      const SizedBox(height: 28),
+
+                      // Title
+                      Text(
+                        _pages[_currentPage].title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          height: 1.3,
+                        ),
                       ),
-                    ),
-                  );
-                },
-              ),
-            ),
+                      const SizedBox(height: 12),
 
-            const SizedBox(height: 24),
-
-            // Page indicator dots
-            _buildPageIndicator(),
-
-            const SizedBox(height: 24),
-
-            // Title and description
-            Expanded(
-              flex: 3,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _pages[_currentPage].title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        height: 1.3,
+                      // Description
+                      Text(
+                        _pages[_currentPage].description,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.6),
+                          fontSize: 14,
+                          height: 1.4,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      _pages[_currentPage].description,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
-                        fontSize: 14,
-                        height: 1.4,
-                      ),
-                    ),
-                    const Spacer(),
+                      const SizedBox(height: 32),
 
-                    // Bottom navigation row
-                    _buildBottomRow(),
-
-                    const SizedBox(height: 24),
-                  ],
+                      // Bottom navigation row
+                      _buildBottomRow(),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGradientOverlay(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: screenHeight * 0.55,
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withValues(alpha: 0.4),
+                  Colors.black.withValues(alpha: 0.8),
+                  Colors.black,
+                ],
+                stops: const [0.0, 0.3, 0.65, 1.0],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -179,21 +209,25 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
 
   Widget _buildPageIndicator() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
         _pages.length,
-        (index) => AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          margin: const EdgeInsets.symmetric(horizontal: 4),
-          width: _currentPage == index ? 24 : 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: _currentPage == index
-                ? const Color(0xFF6C63FF)
-                : Colors.white.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
+        (index) {
+          final bool isActive = index <= _currentPage;
+          return Padding(
+            padding: EdgeInsets.only(right: index < _pages.length - 1 ? 6 : 0),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: isActive
+                    ? Colors.white
+                    : Colors.white.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

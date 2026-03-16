@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:proactive_expense_manager/presentation/screens/home/add_transaction_screen.dart';
+import 'package:proactive_expense_manager/presentation/screens/home/profile_settings_screen.dart';
 import 'package:proactive_expense_manager/presentation/screens/home/transaction_history_screen.dart';
 import 'package:proactive_expense_manager/presentation/widgets/summary_card.dart';
 import 'package:proactive_expense_manager/presentation/widgets/transaction_card.dart';
@@ -45,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             _buildDashboard(),
             const TransactionHistoryScreen(),
-            _buildSettingsPlaceholder(),
+            const ProfileSettingsScreen(),
           ],
         ),
       ),
@@ -89,6 +90,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 amount: '\u{20B9}90,000',
                 color: Color(0xFF4CAF50),
                 icon: Icons.arrow_downward,
+                gradient: LinearGradient(
+                  colors: [Color(0xFF0F8300), Color(0xFF031C00)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
               ),
               SizedBox(width: 12),
               SummaryCard(
@@ -96,6 +102,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 amount: '\u{20B9}36,345',
                 color: Color(0xFFFF4444),
                 icon: Icons.arrow_upward,
+                gradient: LinearGradient(
+                  colors: [Color(0xFFB50303), Color(0xFF250000)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
               ),
             ],
           ),
@@ -149,17 +160,39 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 const SizedBox(height: 12),
 
-                // Progress bar
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: 0.73,
-                    minHeight: 6,
-                    backgroundColor: Colors.white.withValues(alpha: 0.1),
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                      Color(0xFF3D3BFF),
-                    ),
-                  ),
+                // Progress bar with gradient
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: Stack(
+                        children: [
+                          // Background track
+                          Container(
+                            height: 6,
+                            width: double.infinity,
+                            color: Colors.white.withValues(alpha: 0.1),
+                          ),
+                          // Gradient fill
+                          Container(
+                            height: 6,
+                            width: constraints.maxWidth * 0.73,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(4),
+                              gradient: const LinearGradient(
+                                colors: [
+                                  Color(0xFF7ED957),
+                                  Color(0xFF0F8300),
+                                ],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
 
                 const SizedBox(height: 8),
@@ -215,35 +248,42 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSettingsPlaceholder() {
-    return const Center(
-      child: Text(
-        'Settings',
-        style: TextStyle(color: Colors.white, fontSize: 18),
-      ),
-    );
-  }
+  static const List<String> _navIcons = [
+    'assets/images/icons/ic_home.png',
+    'assets/images/icons/ic_tansaction_or_history.png',
+    'assets/images/icons/ic_profile.png',
+  ];
 
   Widget _buildBottomNav() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1C1C1E),
-        borderRadius: BorderRadius.circular(40),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildNavItem(Icons.dashboard_rounded, 0),
-          _buildNavItem(Icons.sync, 1),
-          _buildNavItem(Icons.settings, 2),
-        ],
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.55,
+        margin: const EdgeInsets.only(bottom: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1C1C1E),
+          borderRadius: BorderRadius.circular(40),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.4),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(
+            _navIcons.length,
+            (index) => _buildNavItem(_navIcons[index], index),
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildNavItem(IconData icon, int index) {
+  Widget _buildNavItem(String assetPath, int index) {
     final isSelected = _currentNavIndex == index;
     return GestureDetector(
       onTap: () => setState(() => _currentNavIndex = index),
@@ -256,12 +296,15 @@ class _HomeScreenState extends State<HomeScreen> {
               : Colors.transparent,
           shape: BoxShape.circle,
         ),
-        child: Icon(
-          icon,
-          color: isSelected
-              ? Colors.white
-              : Colors.white.withValues(alpha: 0.4),
-          size: 24,
+        child: Center(
+          child: Image.asset(
+            assetPath,
+            width: 24,
+            height: 24,
+            color: isSelected
+                ? Colors.white
+                : Colors.white.withValues(alpha: 0.4),
+          ),
         ),
       ),
     );

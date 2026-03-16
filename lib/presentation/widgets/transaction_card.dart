@@ -40,10 +40,12 @@ class TransactionCard extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
-              Icons.shopping_cart_outlined,
+            child: Image.asset(
+              'assets/images/icons/ic_cart.png',
+              width: 20,
+              height: 20,
               color: Colors.white.withValues(alpha: 0.6),
-              size: 20,
+              fit: BoxFit.contain,
             ),
           ),
 
@@ -109,10 +111,12 @@ class TransactionCard extends StatelessWidget {
                 color: const Color(0xFFFF4444).withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: const Icon(
-                Icons.delete_outline,
-                color: Color(0xFFFF4444),
-                size: 16,
+              child: Image.asset(
+                'assets/images/icons/ic_delete.png',
+                width: 16,
+                height: 16,
+                color: const Color(0xFFFF4444),
+                fit: BoxFit.contain,
               ),
             ),
           ),
