@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:proactive_expense_manager/data/database/database_helper.dart';
 import 'package:proactive_expense_manager/data/models/transaction_model.dart';
 
@@ -128,5 +129,24 @@ class TransactionRepository {
       WHERE type = 'debit' AND is_deleted = 0
     ''');
     return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+  }
+
+  /// Insert transactions fetched from the cloud if they don't already exist locally.
+  Future<int> mergeFromCloud(List<TransactionModel> cloudTransactions) async {
+    final db = await _dbHelper.database;
+    int insertedCount = 0;
+    for (final tx in cloudTransactions) {
+      final existing = await db.query(
+        'transactions',
+        where: 'id = ?',
+        whereArgs: [tx.id],
+      );
+      if (existing.isEmpty) {
+        await db.insert('transactions', tx.toMap());
+        insertedCount++;
+        debugPrint('TransactionRepository: Inserted cloud transaction → ${tx.note} (${tx.id})');
+      }
+    }
+    return insertedCount;
   }
 }

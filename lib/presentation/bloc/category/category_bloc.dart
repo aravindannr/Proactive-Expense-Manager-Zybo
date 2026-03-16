@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:proactive_expense_manager/data/models/category_model.dart';
@@ -19,11 +20,14 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
     LoadCategories event,
     Emitter<CategoryState> emit,
   ) async {
+    debugPrint('CategoryBloc: LoadCategories event triggered');
     emit(const CategoryLoading());
     try {
       final categories = await repository.getActiveCategories();
+      debugPrint('CategoryBloc: Loaded ${categories.length} categories from local DB');
       emit(CategoryLoaded(categories));
     } catch (e) {
+      debugPrint('CategoryBloc: Error loading categories — $e');
       emit(CategoryError(e.toString()));
     }
   }
@@ -32,6 +36,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
     AddCategory event,
     Emitter<CategoryState> emit,
   ) async {
+    debugPrint('CategoryBloc: AddCategory event → "${event.name}"');
     try {
       final category = CategoryModel(
         id: _uuid.v4(),
@@ -40,11 +45,13 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
         isDeleted: 0,
       );
       await repository.insertCategory(category);
+      debugPrint('CategoryBloc: Inserted category → ${category.id}');
 
       // Immediately update BLoC state
       final categories = await repository.getActiveCategories();
       emit(CategoryLoaded(categories));
     } catch (e) {
+      debugPrint('CategoryBloc: Error adding category — $e');
       emit(CategoryError(e.toString()));
     }
   }
@@ -53,13 +60,16 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
     DeleteCategory event,
     Emitter<CategoryState> emit,
   ) async {
+    debugPrint('CategoryBloc: DeleteCategory event → "${event.id}"');
     try {
       await repository.softDeleteCategory(event.id);
+      debugPrint('CategoryBloc: Soft-deleted category → ${event.id}');
 
       // Immediately filter from BLoC state
       final categories = await repository.getActiveCategories();
       emit(CategoryLoaded(categories));
     } catch (e) {
+      debugPrint('CategoryBloc: Error deleting category — $e');
       emit(CategoryError(e.toString()));
     }
   }

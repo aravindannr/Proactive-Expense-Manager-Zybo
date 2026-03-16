@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:proactive_expense_manager/data/database/database_helper.dart';
 import 'package:proactive_expense_manager/data/models/category_model.dart';
 
@@ -72,5 +73,24 @@ class CategoryRepository {
         whereArgs: [id],
       );
     }
+  }
+
+  /// Insert categories fetched from the cloud if they don't already exist locally.
+  Future<int> mergeFromCloud(List<CategoryModel> cloudCategories) async {
+    final db = await _dbHelper.database;
+    int insertedCount = 0;
+    for (final category in cloudCategories) {
+      final existing = await db.query(
+        'categories',
+        where: 'id = ?',
+        whereArgs: [category.id],
+      );
+      if (existing.isEmpty) {
+        await db.insert('categories', category.toMap());
+        insertedCount++;
+        debugPrint('CategoryRepository: Inserted cloud category → ${category.name} (${category.id})');
+      }
+    }
+    return insertedCount;
   }
 }

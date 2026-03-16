@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -25,10 +26,12 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     LoadTransactions event,
     Emitter<TransactionState> emit,
   ) async {
+    debugPrint('TransactionBloc: LoadTransactions event triggered');
     emit(const TransactionLoading());
     try {
       await _emitLoaded(emit);
     } catch (e) {
+      debugPrint('TransactionBloc: Error loading transactions — $e');
       emit(TransactionError(e.toString()));
     }
   }
@@ -37,6 +40,7 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     AddTransaction event,
     Emitter<TransactionState> emit,
   ) async {
+    debugPrint('TransactionBloc: AddTransaction event → "${event.note}" ${event.type} ${event.amount}');
     try {
       final transaction = TransactionModel(
         id: _uuid.v4(),
@@ -49,6 +53,7 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
         isDeleted: 0,
       );
       await repository.insertTransaction(transaction);
+      debugPrint('TransactionBloc: Inserted transaction → ${transaction.id}');
 
       // Check budget limit for debit transactions
       if (event.type == 'debit') {
@@ -58,6 +63,7 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
       // Immediately update BLoC state
       await _emitLoaded(emit);
     } catch (e) {
+      debugPrint('TransactionBloc: Error adding transaction — $e');
       emit(TransactionError(e.toString()));
     }
   }
@@ -66,12 +72,15 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     DeleteTransaction event,
     Emitter<TransactionState> emit,
   ) async {
+    debugPrint('TransactionBloc: DeleteTransaction event → "${event.id}"');
     try {
       await repository.softDeleteTransaction(event.id);
+      debugPrint('TransactionBloc: Soft-deleted transaction → ${event.id}');
 
       // Immediately filter from BLoC state
       await _emitLoaded(emit);
     } catch (e) {
+      debugPrint('TransactionBloc: Error deleting transaction — $e');
       emit(TransactionError(e.toString()));
     }
   }
@@ -81,6 +90,8 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     final recentTransactions = await repository.getRecentTransactions(limit: 10);
     final totalIncome = await repository.getTotalIncome();
     final totalExpense = await repository.getTotalExpense();
+
+    debugPrint('TransactionBloc: Loaded ${allTransactions.length} transactions (income: $totalIncome, expense: $totalExpense)');
 
     emit(TransactionLoaded(
       allTransactions: allTransactions,
