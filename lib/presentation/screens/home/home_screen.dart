@@ -14,6 +14,7 @@ import 'package:proactive_expense_manager/presentation/screens/home/profile_sett
 import 'package:proactive_expense_manager/presentation/screens/home/transaction_history_screen.dart';
 import 'package:proactive_expense_manager/presentation/theme/app_text_styles.dart';
 import 'package:proactive_expense_manager/presentation/widgets/summary_card.dart';
+import 'package:proactive_expense_manager/presentation/widgets/confirm_bottom_sheet.dart';
 import 'package:proactive_expense_manager/presentation/widgets/transaction_card.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -230,10 +231,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       date: _formatDate(t.timestamp),
                       amount: _formatAmount(t.amount),
                       isExpense: t.isExpense,
-                      onDelete: () {
-                        context
-                            .read<TransactionBloc>()
-                            .add(DeleteTransaction(t.id));
+                      onDelete: () async {
+                        final confirmed = await showConfirmBottomSheet(
+                          context,
+                          title: 'Confirm Delete',
+                          message: 'Are you sure you want to delete this item?',
+                        );
+                        if (confirmed == true && context.mounted) {
+                          context
+                              .read<TransactionBloc>()
+                              .add(DeleteTransaction(t.id));
+                        }
                       },
                     );
                   },
