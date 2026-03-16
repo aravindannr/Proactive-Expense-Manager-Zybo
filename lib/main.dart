@@ -14,7 +14,9 @@ class MyApp extends StatelessWidget {
       title: 'Proactive Expense Manager',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        fontFamily: 'Inter',
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF312ECB)),
+        primaryColor: const Color(0xFF312ECB),
       ),
       home: const InitialScreen(),
     );

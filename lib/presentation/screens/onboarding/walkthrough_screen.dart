@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:proactive_expense_manager/presentation/screens/auth/login_screen.dart';
+import 'package:proactive_expense_manager/presentation/theme/app_text_styles.dart';
 
 class WalkthroughScreen extends StatefulWidget {
   const WalkthroughScreen({super.key});
@@ -72,7 +73,15 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Full-screen background PageView
+          // Full-screen background image
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/onboarding/walkthrough_bg.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+
+          // Invisible PageView for swipe gesture handling
           PageView.builder(
             controller: _pageController,
             itemCount: _pages.length,
@@ -82,12 +91,7 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
               });
             },
             itemBuilder: (context, index) {
-              return Image.asset(
-                'assets/images/onboarding/walkthrough_bg.png',
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: double.infinity,
-              );
+              return const SizedBox.expand();
             },
           ),
 
@@ -117,22 +121,15 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
                       // Title
                       Text(
                         _pages[_currentPage].title,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          height: 1.3,
-                        ),
+                        style: AppTextStyles.walkthroughTitle,
                       ),
                       const SizedBox(height: 12),
 
                       // Description
                       Text(
                         _pages[_currentPage].description,
-                        style: TextStyle(
+                        style: AppTextStyles.walkthroughSubtitle.copyWith(
                           color: Colors.white.withValues(alpha: 0.6),
-                          fontSize: 14,
-                          height: 1.4,
                         ),
                       ),
                       const SizedBox(height: 32),
@@ -213,17 +210,18 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
         _pages.length,
         (index) {
           final bool isActive = index <= _currentPage;
-          return Padding(
-            padding: EdgeInsets.only(right: index < _pages.length - 1 ? 6 : 0),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: isActive
-                    ? Colors.white
-                    : Colors.white.withValues(alpha: 0.25),
-                borderRadius: BorderRadius.circular(2),
+          return Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(right: index < _pages.length - 1 ? 6 : 0),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
           );
@@ -236,58 +234,58 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
     final bool isLastPage = _currentPage == _pages.length - 1;
     final bool isFirstPage = _currentPage == 0;
 
+    final nextButton = Expanded(
+      child: SizedBox(
+        height: 48,
+        child: ElevatedButton(
+          onPressed: isLastPage ? _onGetStarted : _onNextPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTextStyles.primaryButtonColor,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 0,
+          ),
+          child: Text(
+            isLastPage ? 'Get Started' : 'Next',
+            style: AppTextStyles.buttonText,
+          ),
+        ),
+      ),
+    );
+
+    if (isFirstPage) {
+      return Row(children: [nextButton]);
+    }
+
     return Row(
       children: [
-        // Back button (hidden on first page)
-        if (!isFirstPage)
-          GestureDetector(
-            onTap: _onBackPressed,
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.3),
-                  width: 1,
-                ),
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 20,
+        // Back button
+        GestureDetector(
+          onTap: _onBackPressed,
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.3),
+                width: 1,
               ),
             ),
-          )
-        else
-          const SizedBox(width: 48),
+            child: const Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+        ),
 
         const SizedBox(width: 16),
 
         // Next / Get Started button
-        Expanded(
-          child: SizedBox(
-            height: 48,
-            child: ElevatedButton(
-              onPressed: isLastPage ? _onGetStarted : _onNextPressed,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6C63FF),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 0,
-              ),
-              child: Text(
-                isLastPage ? 'Get Started' : 'Next',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        ),
+        nextButton,
       ],
     );
   }

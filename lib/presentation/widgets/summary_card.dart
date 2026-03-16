@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proactive_expense_manager/presentation/theme/app_text_styles.dart';
 
 class SummaryCard extends StatelessWidget {
   final String title;
@@ -84,9 +85,8 @@ class SummaryCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
+                    style: AppTextStyles.summaryCardTitle.copyWith(
                       color: color,
-                      fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -97,11 +97,7 @@ class SummaryCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         amount,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: AppTextStyles.amountText.copyWith(fontSize: 20),
                       ),
                     ],
                   ),

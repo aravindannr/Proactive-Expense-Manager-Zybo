@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proactive_expense_manager/presentation/theme/app_text_styles.dart';
 
 class CategoryChip extends StatelessWidget {
   final String label;
@@ -19,11 +20,11 @@ class CategoryChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF3D3BFF) : const Color(0xFF2C2C2E),
+          color: isSelected ? AppTextStyles.primaryButtonColor : const Color(0xFF2C2C2E),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF3D3BFF)
+                ? AppTextStyles.primaryButtonColor
                 : Colors.white.withValues(alpha: 0.1),
             width: 1,
           ),

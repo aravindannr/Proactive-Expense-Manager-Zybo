@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:proactive_expense_manager/presentation/theme/app_text_styles.dart';
 import 'package:proactive_expense_manager/presentation/widgets/category_chip.dart';
 
 class AddTransactionScreen extends StatefulWidget {
@@ -98,7 +99,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: _isExpense
-                            ? const Color(0xFF3D3BFF)
+                            ? AppTextStyles.primaryButtonColor
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -122,7 +123,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: !_isExpense
-                            ? const Color(0xFF3D3BFF)
+                            ? AppTextStyles.primaryButtonColor
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -255,7 +256,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             child: ElevatedButton(
               onPressed: _onSave,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3D3BFF),
+                backgroundColor: AppTextStyles.primaryButtonColor,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -264,10 +265,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               ),
               child: const Text(
                 'Save',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: AppTextStyles.buttonText,
               ),
             ),
           ),

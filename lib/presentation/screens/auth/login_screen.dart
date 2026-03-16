@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:proactive_expense_manager/presentation/screens/auth/verify_otp_screen.dart';
+import 'package:proactive_expense_manager/presentation/theme/app_text_styles.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -44,11 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
               // Title
               const Text(
                 'Get Started',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: AppTextStyles.getStartedTitle,
               ),
 
               const SizedBox(height: 8),
@@ -56,9 +53,8 @@ class _LoginScreenState extends State<LoginScreen> {
               // Subtitle
               Text(
                 'Log In Using Phone & OTP',
-                style: TextStyle(
+                style: AppTextStyles.loginSubtitle.copyWith(
                   color: Colors.white.withValues(alpha: 0.5),
-                  fontSize: 14,
                 ),
               ),
 
@@ -132,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ElevatedButton(
                   onPressed: _onContinue,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3D3BFF),
+                    backgroundColor: AppTextStyles.primaryButtonColor,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -141,10 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: const Text(
                     'Continue',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: AppTextStyles.buttonText,
                   ),
                 ),
               ),

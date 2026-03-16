@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:proactive_expense_manager/presentation/screens/home/add_transaction_screen.dart';
 import 'package:proactive_expense_manager/presentation/screens/home/profile_settings_screen.dart';
 import 'package:proactive_expense_manager/presentation/screens/home/transaction_history_screen.dart';
+import 'package:proactive_expense_manager/presentation/theme/app_text_styles.dart';
 import 'package:proactive_expense_manager/presentation/widgets/summary_card.dart';
 import 'package:proactive_expense_manager/presentation/widgets/transaction_card.dart';
 
@@ -73,11 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
           // Greeting
           Text(
             '\u{1F44B} Welcome, ${widget.nickname}!',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: AppTextStyles.getStartedTitle.copyWith(fontSize: 20),
           ),
 
           const SizedBox(height: 20),
@@ -213,11 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
           // Recent transactions header
           const Text(
             'Recent Transactions',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+            style: AppTextStyles.transactionTitle,
           ),
 
           const SizedBox(height: 14),
@@ -292,7 +285,7 @@ class _HomeScreenState extends State<HomeScreen> {
         height: 48,
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFF3D3BFF)
+              ? AppTextStyles.primaryButtonColor
               : Colors.transparent,
           shape: BoxShape.circle,
         ),

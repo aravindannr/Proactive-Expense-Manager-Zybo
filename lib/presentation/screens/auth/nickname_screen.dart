@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:proactive_expense_manager/presentation/screens/home/home_screen.dart';
+import 'package:proactive_expense_manager/presentation/theme/app_text_styles.dart';
 
 class NicknameScreen extends StatefulWidget {
   final String phoneNumber;
@@ -63,11 +64,7 @@ class _NicknameScreenState extends State<NicknameScreen> {
               // Title with wave emoji
               const Text(
                 '\u{1F44B} What should we call you?',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: AppTextStyles.whatShouldCallYou,
               ),
 
               const SizedBox(height: 8),
@@ -75,9 +72,8 @@ class _NicknameScreenState extends State<NicknameScreen> {
               // Subtitle
               Text(
                 'This name stays only on your device.',
-                style: TextStyle(
+                style: AppTextStyles.loginSubtitle.copyWith(
                   color: Colors.white.withValues(alpha: 0.5),
-                  fontSize: 14,
                 ),
               ),
 
@@ -138,9 +134,9 @@ class _NicknameScreenState extends State<NicknameScreen> {
                 child: ElevatedButton(
                   onPressed: _isValid ? _onContinue : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3D3BFF),
+                    backgroundColor: AppTextStyles.primaryButtonColor,
                     disabledBackgroundColor:
-                        const Color(0xFF3D3BFF).withValues(alpha: 0.4),
+                        AppTextStyles.primaryButtonColor.withValues(alpha: 0.4),
                     foregroundColor: Colors.white,
                     disabledForegroundColor:
                         Colors.white.withValues(alpha: 0.4),
@@ -151,10 +147,7 @@ class _NicknameScreenState extends State<NicknameScreen> {
                   ),
                   child: const Text(
                     'Continue',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: AppTextStyles.buttonText,
                   ),
                 ),
               ),

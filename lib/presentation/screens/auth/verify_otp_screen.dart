@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:proactive_expense_manager/presentation/screens/auth/nickname_screen.dart';
+import 'package:proactive_expense_manager/presentation/theme/app_text_styles.dart';
 
 class VerifyOtpScreen extends StatefulWidget {
   final String phoneNumber;
@@ -118,41 +119,27 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
               // Title
               const Text(
                 'Verify OTP',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: AppTextStyles.getStartedTitle,
               ),
 
               const SizedBox(height: 8),
 
               // Subtitle with masked phone
-              RichText(
-                text: TextSpan(
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.5),
-                    fontSize: 14,
-                    height: 1.4,
-                  ),
-                  children: [
-                    TextSpan(
-                      text: 'Enter the 6-Digit code sent to $_maskedPhone\n',
-                    ),
-                  ],
+              Text(
+                'Enter the 6-Digit code sent to $_maskedPhone',
+                style: AppTextStyles.loginSubtitle.copyWith(
+                  color: Colors.white.withValues(alpha: 0.5),
                 ),
               ),
+
+              const SizedBox(height: 4),
 
               // Change Number link
               GestureDetector(
                 onTap: _onChangeNumber,
                 child: const Text(
                   'Change Number',
-                  style: TextStyle(
-                    color: Color(0xFF3D3BFF),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: AppTextStyles.changeNumber,
                 ),
               ),
 
@@ -191,7 +178,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(
-                            color: Color(0xFF3D3BFF),
+                            color: AppTextStyles.primaryButtonColor,
                             width: 1,
                           ),
                         ),
@@ -222,7 +209,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                 child: ElevatedButton(
                   onPressed: _onVerify,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3D3BFF),
+                    backgroundColor: AppTextStyles.primaryButtonColor,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -231,10 +218,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                   ),
                   child: const Text(
                     'Verify',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: AppTextStyles.buttonText,
                   ),
                 ),
               ),
@@ -248,9 +232,8 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                   onTap: _resendSeconds == 0 ? _onResendOtp : null,
                   child: RichText(
                     text: TextSpan(
-                      style: TextStyle(
+                      style: AppTextStyles.resendOtp.copyWith(
                         color: Colors.white.withValues(alpha: 0.4),
-                        fontSize: 14,
                       ),
                       children: [
                         const TextSpan(text: 'Resend OTP in  '),
@@ -259,7 +242,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                           style: TextStyle(
                             color: _resendSeconds > 0
                                 ? Colors.white.withValues(alpha: 0.4)
-                                : const Color(0xFF3D3BFF),
+                                : AppTextStyles.primaryButtonColor,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -267,7 +250,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                           const TextSpan(
                             text: 'Resend',
                             style: TextStyle(
-                              color: Color(0xFF3D3BFF),
+                              color: AppTextStyles.primaryButtonColor,
                               fontWeight: FontWeight.w500,
                             ),
                           ),

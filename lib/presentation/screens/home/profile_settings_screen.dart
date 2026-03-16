@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proactive_expense_manager/presentation/theme/app_text_styles.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
   const ProfileSettingsScreen({super.key});
@@ -221,7 +222,7 @@ class _AlertLimitSection extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: onSet,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3D3BFF),
+                    backgroundColor: AppTextStyles.primaryButtonColor,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -337,7 +338,7 @@ class _CategoriesSection extends StatelessWidget {
                       width: 40,
                       height: 40,
                       decoration: const BoxDecoration(
-                        color: Color(0xFF3D3BFF),
+                        color: AppTextStyles.primaryButtonColor,
                         shape: BoxShape.circle,
                       ),
                       child:
@@ -428,7 +429,7 @@ class _CloudSyncSection extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF3D3BFF),
+            color: AppTextStyles.primaryButtonColor,
             borderRadius: BorderRadius.circular(14),
           ),
           child: Row(
