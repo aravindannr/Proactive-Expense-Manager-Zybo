@@ -5,6 +5,7 @@ import 'package:proactive_expense_manager/presentation/bloc/transaction/transact
 import 'package:proactive_expense_manager/presentation/bloc/transaction/transaction_event.dart';
 import 'package:proactive_expense_manager/presentation/bloc/transaction/transaction_state.dart';
 import 'package:proactive_expense_manager/presentation/theme/app_text_styles.dart';
+import 'package:proactive_expense_manager/presentation/widgets/confirm_bottom_sheet.dart';
 import 'package:proactive_expense_manager/presentation/widgets/transaction_card.dart';
 
 class TransactionHistoryScreen extends StatelessWidget {
@@ -93,10 +94,17 @@ class TransactionHistoryScreen extends StatelessWidget {
                       date: _formatDate(t.timestamp),
                       amount: _formatAmount(t.amount),
                       isExpense: t.isExpense,
-                      onDelete: () {
-                        context
-                            .read<TransactionBloc>()
-                            .add(DeleteTransaction(t.id));
+                      onDelete: () async {
+                        final confirmed = await showConfirmBottomSheet(
+                          context,
+                          title: 'Confirm Delete',
+                          message: 'Are you sure you want to delete this item?',
+                        );
+                        if (confirmed == true && context.mounted) {
+                          context
+                              .read<TransactionBloc>()
+                              .add(DeleteTransaction(t.id));
+                        }
                       },
                     );
                   },

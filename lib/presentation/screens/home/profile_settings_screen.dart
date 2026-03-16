@@ -14,6 +14,7 @@ import 'package:proactive_expense_manager/presentation/bloc/transaction/transact
 import 'package:proactive_expense_manager/presentation/bloc/transaction/transaction_event.dart';
 import 'package:proactive_expense_manager/presentation/screens/auth/login_screen.dart';
 import 'package:proactive_expense_manager/presentation/theme/app_text_styles.dart';
+import 'package:proactive_expense_manager/presentation/widgets/confirm_bottom_sheet.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
   const ProfileSettingsScreen({super.key});
@@ -407,10 +408,20 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                     ),
                                   ),
                                   GestureDetector(
-                                    onTap: () {
-                                      context.read<CategoryBloc>().add(
-                                        DeleteCategory(cat.id),
-                                      );
+                                    onTap: () async {
+                                      final confirmed =
+                                          await showConfirmBottomSheet(
+                                            context,
+                                            title: 'Confirm Delete',
+                                            message:
+                                                'Are you sure you want to delete this item?',
+                                          );
+                                      if (confirmed == true &&
+                                          context.mounted) {
+                                        context.read<CategoryBloc>().add(
+                                          DeleteCategory(cat.id),
+                                        );
+                                      }
                                     },
                                     child: Image.asset(
                                       'assets/images/icons/ic_delete_cat.png',
@@ -528,8 +539,17 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   Widget _buildLogoutButton() {
     return Center(
       child: GestureDetector(
-        onTap: () {
-          context.read<AuthBloc>().add(const AuthLogout());
+        onTap: () async {
+          final confirmed = await showConfirmBottomSheet(
+            context,
+            title: 'Logout',
+            message: 'Are you sure you want to logout?',
+            confirmLabel: 'Logout',
+            confirmColor: AppTextStyles.primaryButtonColor,
+          );
+          if (confirmed == true && mounted) {
+            context.read<AuthBloc>().add(const AuthLogout());
+          }
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
