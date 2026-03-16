@@ -26,7 +26,7 @@ class NotificationService {
       android: androidSettings,
       iOS: iosSettings,
     );
-    await _plugin.initialize(initSettings);
+    await _plugin.initialize(settings: initSettings);
 
     // Request permission on Android 13+
     final androidPlugin = _plugin
@@ -53,11 +53,12 @@ class NotificationService {
     );
 
     await _plugin.show(
-      0,
-      'Budget Limit Exceeded!',
-      'Your monthly expenses have reached \u{20B9}${totalExpense.toStringAsFixed(0)}. '
+      id: 0,
+      title: 'Budget Limit Exceeded!',
+      body:
+          'Your monthly expenses have reached \u{20B9}${totalExpense.toStringAsFixed(0)}. '
           'This exceeds your \u{20B9}${limit.toStringAsFixed(0)} budget limit.',
-      notificationDetails,
+      notificationDetails: notificationDetails,
     );
   }
 
@@ -89,13 +90,11 @@ class NotificationService {
     }
 
     await _plugin.zonedSchedule(
-      1,
-      'Expense Reminder',
-      'Don\u2019t forget to log your expenses for today!',
-      scheduledDate,
-      notificationDetails,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
+      id: 1,
+      title: 'Expense Reminder',
+      body: 'Don\u2019t forget to log your expenses for today!',
+      scheduledDate: scheduledDate,
+      notificationDetails: notificationDetails,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.time,
     );
@@ -103,6 +102,6 @@ class NotificationService {
 
   /// Cancel the daily reminder notification.
   Future<void> cancelDailyReminder() async {
-    await _plugin.cancel(1);
+    await _plugin.cancel(id: 1);
   }
 }

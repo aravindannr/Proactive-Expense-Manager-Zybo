@@ -204,7 +204,20 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                   width: 20,
                   height: 20,
                 ),
-                onPressed: _saveNickname,
+                onPressed: () async {
+                  final nickname = _nicknameController.text.trim();
+                  if (nickname.isEmpty) return;
+                  final confirmed = await showConfirmBottomSheet(
+                    context,
+                    title: 'Change Nickname',
+                    message: 'Are you sure you want to change your nickname?',
+                    confirmLabel: 'Confirm',
+                    confirmColor: AppTextStyles.primaryButtonColor,
+                  );
+                  if (confirmed == true) {
+                    _saveNickname();
+                  }
+                },
               ),
             ),
           ),
@@ -267,7 +280,21 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               SizedBox(
                 height: 44,
                 child: ElevatedButton(
-                  onPressed: _setAlertLimit,
+                  onPressed: () async {
+                    final value = int.tryParse(_alertLimitController.text);
+                    if (value == null || value <= 0) return;
+                    final confirmed = await showConfirmBottomSheet(
+                      context,
+                      title: 'Change Alert Limit',
+                      message:
+                          'Are you sure you want to update your alert limit?',
+                      confirmLabel: 'Confirm',
+                      confirmColor: AppTextStyles.primaryButtonColor,
+                    );
+                    if (confirmed == true) {
+                      _setAlertLimit();
+                    }
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTextStyles.primaryButtonColor,
                     foregroundColor: Colors.white,

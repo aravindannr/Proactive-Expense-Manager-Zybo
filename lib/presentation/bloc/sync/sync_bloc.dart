@@ -21,27 +21,29 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     on<StartSync>(_onStartSync);
   }
 
-  Future<void> _onStartSync(
-    StartSync event,
-    Emitter<SyncState> emit,
-  ) async {
+  Future<void> _onStartSync(StartSync event, Emitter<SyncState> emit) async {
     try {
       // ─── Step A: Clean up Deletions ────────────────────────────────
 
       // 1. Delete transactions from cloud first
       emit(const SyncInProgress('Deleting transactions from cloud...'));
       debugPrint('SyncBloc: Step A.1 — Deleting transactions from cloud');
-      final deletedTransactions =
-          await transactionRepository.getDeletedTransactions();
+      final deletedTransactions = await transactionRepository
+          .getDeletedTransactions();
       if (deletedTransactions.isNotEmpty) {
         final txIds = deletedTransactions.map((t) => t.id).toList();
-        debugPrint('SyncBloc: Sending ${txIds.length} transaction IDs for cloud deletion');
+        debugPrint(
+          'SyncBloc: Sending ${txIds.length} transaction IDs for cloud deletion',
+        );
         final txDeleteResponse = await apiService.deleteTransactions(txIds);
         if (txDeleteResponse['status'] == 'success') {
-          final deletedIds =
-              List<String>.from(txDeleteResponse['deleted_ids'] ?? []);
+          final deletedIds = List<String>.from(
+            txDeleteResponse['deleted_ids'] ?? [],
+          );
           await transactionRepository.permanentlyDelete(deletedIds);
-          debugPrint('SyncBloc: Permanently deleted ${deletedIds.length} transactions locally');
+          debugPrint(
+            'SyncBloc: Permanently deleted ${deletedIds.length} transactions locally',
+          );
         }
       } else {
         debugPrint('SyncBloc: No deleted transactions to purge');
@@ -50,17 +52,21 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       // 2. Delete categories from cloud
       emit(const SyncInProgress('Deleting categories from cloud...'));
       debugPrint('SyncBloc: Step A.2 — Deleting categories from cloud');
-      final deletedCategories =
-          await categoryRepository.getDeletedCategories();
+      final deletedCategories = await categoryRepository.getDeletedCategories();
       if (deletedCategories.isNotEmpty) {
         final catIds = deletedCategories.map((c) => c.id).toList();
-        debugPrint('SyncBloc: Sending ${catIds.length} category IDs for cloud deletion');
+        debugPrint(
+          'SyncBloc: Sending ${catIds.length} category IDs for cloud deletion',
+        );
         final catDeleteResponse = await apiService.deleteCategories(catIds);
         if (catDeleteResponse['status'] == 'success') {
-          final deletedIds =
-              List<String>.from(catDeleteResponse['deleted_ids'] ?? []);
+          final deletedIds = List<String>.from(
+            catDeleteResponse['deleted_ids'] ?? [],
+          );
           await categoryRepository.permanentlyDelete(deletedIds);
-          debugPrint('SyncBloc: Permanently deleted ${deletedIds.length} categories locally');
+          debugPrint(
+            'SyncBloc: Permanently deleted ${deletedIds.length} categories locally',
+          );
         }
       } else {
         debugPrint('SyncBloc: No deleted categories to purge');
@@ -71,34 +77,52 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       // 1. Sync categories first
       emit(const SyncInProgress('Syncing categories...'));
       debugPrint('SyncBloc: Step B.1 — Uploading unsynced categories');
-      final unsyncedCategories =
-          await categoryRepository.getUnsyncedCategories();
-      debugPrint('SyncBloc: Found ${unsyncedCategories.length} unsynced categories');
+      final unsyncedCategories = await categoryRepository
+          .getUnsyncedCategories();
+      debugPrint(
+        'SyncBloc: Found ${unsyncedCategories.length} unsynced categories',
+      );
       for (final category in unsyncedCategories) {
         final response = await apiService.addCategory(category.toApiJson());
         if (response['status'] == 'success') {
-          final syncedIds =
-              List<String>.from(response['synced_ids'] ?? []);
+          final syncedIds = List<String>.from(response['synced_ids'] ?? []);
           await categoryRepository.markAsSynced(syncedIds);
           debugPrint('SyncBloc: Marked category as synced → ${category.name}');
+        } else if (response['message'] == 'Category already exists') {
+          // Category already on server — mark local record as synced
+          await categoryRepository.markAsSynced([category.id]);
+          debugPrint(
+            'SyncBloc: Category already exists on server, marked as synced → ${category.name}',
+          );
         }
       }
 
       // 2. Sync transactions second
       emit(const SyncInProgress('Syncing transactions...'));
       debugPrint('SyncBloc: Step B.2 — Uploading unsynced transactions');
-      final unsyncedTransactions =
-          await transactionRepository.getUnsyncedTransactions();
-      debugPrint('SyncBloc: Found ${unsyncedTransactions.length} unsynced transactions');
+      final unsyncedTransactions = await transactionRepository
+          .getUnsyncedTransactions();
+      debugPrint(
+        'SyncBloc: Found ${unsyncedTransactions.length} unsynced transactions',
+      );
       if (unsyncedTransactions.isNotEmpty) {
-        final txJsonList =
-            unsyncedTransactions.map((t) => t.toApiJson()).toList();
+        final txJsonList = unsyncedTransactions
+            .map((t) => t.toApiJson())
+            .toList();
         final response = await apiService.addTransactions(txJsonList);
         if (response['status'] == 'success') {
-          final syncedIds =
-              List<String>.from(response['synced_ids'] ?? []);
+          // Try synced_ids first; fall back to local IDs if server doesn't return them
+          var syncedIds = List<String>.from(response['synced_ids'] ?? []);
+          if (syncedIds.isEmpty) {
+            syncedIds = unsyncedTransactions.map((t) => t.id).toList();
+            debugPrint(
+              'SyncBloc: Server did not return synced_ids, using local IDs',
+            );
+          }
           await transactionRepository.markAsSynced(syncedIds);
-          debugPrint('SyncBloc: Marked ${syncedIds.length} transactions as synced');
+          debugPrint(
+            'SyncBloc: Marked ${syncedIds.length} transactions as synced',
+          );
         }
       }
 
@@ -113,14 +137,18 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         debugPrint('SyncBloc: API returned ${cloudCatList.length} categories');
         final cloudCategories = cloudCatList.map((json) {
           final map = json as Map<String, dynamic>;
+          // API returns "category_id", not "id"
+          final id = (map['category_id'] ?? map['id']) as String;
           return CategoryModel(
-            id: map['id'] as String,
+            id: id,
             name: map['name'] as String,
             isSynced: 1,
             isDeleted: 0,
           );
         }).toList();
-        final insertedCats = await categoryRepository.mergeFromCloud(cloudCategories);
+        final insertedCats = await categoryRepository.mergeFromCloud(
+          cloudCategories,
+        );
         debugPrint('SyncBloc: Merged $insertedCats new categories from cloud');
       }
 
@@ -144,7 +172,9 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
             isDeleted: 0,
           );
         }).toList();
-        final insertedTxs = await transactionRepository.mergeFromCloud(cloudTransactions);
+        final insertedTxs = await transactionRepository.mergeFromCloud(
+          cloudTransactions,
+        );
         debugPrint('SyncBloc: Merged $insertedTxs new transactions from cloud');
       }
 
