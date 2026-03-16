@@ -181,7 +181,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         const SizedBox(height: 10),
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF1C1C1E),
+            color: Colors.transparent,
+            border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
             borderRadius: BorderRadius.circular(14),
           ),
           child: TextField(
@@ -192,10 +193,11 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               border: InputBorder.none,
               suffixIcon: IconButton(
-                icon: Icon(
-                  Icons.check,
+                icon: Image.asset(
+                  'assets/images/icons/ic_edit_name.png',
+                  width: 20,
+                  height: 20,
                   color: Colors.white.withValues(alpha: 0.5),
-                  size: 20,
                 ),
                 onPressed: _saveNickname,
               ),
@@ -212,7 +214,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1C1C1E),
+        color: Colors.transparent,
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -307,7 +310,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF1C1C1E),
+            color: Colors.transparent,
+            border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
             borderRadius: BorderRadius.circular(14),
           ),
           child: Column(
@@ -350,9 +354,10 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                     child: Container(
                       width: 40,
                       height: 40,
-                      decoration: const BoxDecoration(
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
                         color: AppTextStyles.primaryButtonColor,
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child:
                           const Icon(Icons.add, color: Colors.white, size: 22),
@@ -395,24 +400,12 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                           .read<CategoryBloc>()
                                           .add(DeleteCategory(cat.id));
                                     },
-                                    child: Container(
-                                      width: 32,
-                                      height: 32,
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: const Color(0xFFFF4444),
-                                          width: 1,
-                                        ),
-                                        borderRadius:
-                                            BorderRadius.circular(8),
-                                      ),
-                                      child: Image.asset(
-                                        'assets/images/icons/ic_delete.png',
-                                        width: 18,
-                                        height: 18,
-                                        color: const Color(0xFFFF4444),
-                                        fit: BoxFit.contain,
-                                      ),
+                                    child: Image.asset(
+                                      'assets/images/icons/ic_delete_cat.png',
+                                      width: 20,
+                                      height: 20,
+                                      color: const Color(0xFFFF4444),
+                                      fit: BoxFit.contain,
                                     ),
                                   ),
                                 ],
@@ -554,6 +547,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   String _formatAmount(int amount) {
     final str = amount.toString();
+    if (str.length <= 3) return str;
     final result = StringBuffer();
     int count = 0;
     for (int i = str.length - 1; i >= 0; i--) {
@@ -561,7 +555,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       count++;
       if (count == 3 && i > 0) {
         result.write(',');
-        count = 0;
+      } else if (count > 3 && (count - 3) % 2 == 0 && i > 0) {
+        result.write(',');
       }
     }
     return result.toString().split('').reversed.join();

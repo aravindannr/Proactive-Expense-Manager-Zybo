@@ -18,13 +18,26 @@ class AddTransactionScreen extends StatefulWidget {
 class _AddTransactionScreenState extends State<AddTransactionScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
+  final FocusNode _titleFocusNode = FocusNode();
+  final FocusNode _amountFocusNode = FocusNode();
   bool _isExpense = true;
   String? _selectedCategoryId;
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-focus the title field when the bottom sheet opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _titleFocusNode.requestFocus();
+    });
+  }
 
   @override
   void dispose() {
     _titleController.dispose();
     _amountController.dispose();
+    _titleFocusNode.dispose();
+    _amountFocusNode.dispose();
     super.dispose();
   }
 
@@ -57,15 +70,16 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
       decoration: const BoxDecoration(
         color: Color(0xFF1C1C1E),
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(24, 16, 24, 24 + MediaQuery.of(context).viewInsets.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // Handle bar
           Center(
             child: Container(
@@ -123,7 +137,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: _isExpense
-                            ? AppTextStyles.primaryButtonColor
+                            ? const Color(0xFF4CAF50)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -147,7 +161,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: !_isExpense
-                            ? AppTextStyles.primaryButtonColor
+                            ? const Color(0xFF4CAF50)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -173,6 +187,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           // Title field
           TextField(
             controller: _titleController,
+            focusNode: _titleFocusNode,
+            textInputAction: TextInputAction.next,
+            onSubmitted: (_) => _amountFocusNode.requestFocus(),
             style: const TextStyle(color: Colors.white, fontSize: 15),
             decoration: InputDecoration(
               hintText: 'Title',
@@ -198,8 +215,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           // Amount field
           TextField(
             controller: _amountController,
+            focusNode: _amountFocusNode,
             keyboardType: TextInputType.number,
+            textInputAction: TextInputAction.done,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            onSubmitted: (_) => FocusScope.of(context).unfocus(),
             style: const TextStyle(color: Colors.white, fontSize: 15),
             decoration: InputDecoration(
               hintText: 'Amount (\u{20B9})',
@@ -274,24 +294,31 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           const SizedBox(height: 20),
 
           // Info text
-          Row(
-            children: [
-              Icon(
-                Icons.info_outline,
-                color: Colors.white.withValues(alpha: 0.4),
-                size: 16,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Everything you add here is saved only on your device.',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.4),
-                    fontSize: 12,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2C2C2E),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  color: Colors.white.withValues(alpha: 0.4),
+                  size: 16,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Everything you add here is saved only on your device.',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.4),
+                      fontSize: 12,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
 
           const SizedBox(height: 20),
@@ -317,8 +344,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             ),
           ),
 
-          SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
         ],
+        ),
       ),
     );
   }

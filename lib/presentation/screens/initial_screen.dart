@@ -9,6 +9,7 @@ import 'package:proactive_expense_manager/presentation/bloc/transaction/transact
 import 'package:proactive_expense_manager/presentation/bloc/transaction/transaction_event.dart';
 import 'package:proactive_expense_manager/presentation/screens/home/home_screen.dart';
 import 'package:proactive_expense_manager/presentation/screens/onboarding/walkthrough_screen.dart';
+import 'package:proactive_expense_manager/services/notification_service.dart';
 
 class InitialScreen extends StatefulWidget {
   const InitialScreen({super.key});
@@ -32,6 +33,9 @@ class _InitialScreenState extends State<InitialScreen> {
     // Load data before navigating
     context.read<TransactionBloc>().add(const LoadTransactions());
     context.read<CategoryBloc>().add(const LoadCategories());
+
+    // Schedule daily expense reminder at 8 PM
+    NotificationService().scheduleDailyReminder(hour: 20, minute: 0);
 
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(

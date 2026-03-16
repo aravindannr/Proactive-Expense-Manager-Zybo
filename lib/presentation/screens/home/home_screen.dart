@@ -466,7 +466,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildNavItem(String assetPath, int index) {
     final isSelected = _currentNavIndex == index;
     return GestureDetector(
-      onTap: () => setState(() => _currentNavIndex = index),
+      onTap: () {
+        setState(() => _currentNavIndex = index);
+        if (index == 0) _loadAlertLimit();
+      },
       child: Container(
         width: 48,
         height: 48,
