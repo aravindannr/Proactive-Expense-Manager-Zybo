@@ -52,7 +52,10 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     await prefs.setString('nickname', nickname);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nickname updated'), duration: Duration(seconds: 1)),
+        const SnackBar(
+          content: Text('Nickname updated'),
+          duration: Duration(seconds: 1),
+        ),
       );
     }
   }
@@ -189,15 +192,16 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             controller: _nicknameController,
             style: const TextStyle(color: Colors.white, fontSize: 16),
             decoration: InputDecoration(
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
               border: InputBorder.none,
               suffixIcon: IconButton(
                 icon: Image.asset(
                   'assets/images/icons/ic_edit_name.png',
                   width: 20,
                   height: 20,
-                  color: Colors.white.withValues(alpha: 0.5),
                 ),
                 onPressed: _saveNickname,
               ),
@@ -245,7 +249,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                     style: const TextStyle(color: Colors.white, fontSize: 14),
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 12),
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                       border: InputBorder.none,
                       hintText: 'Amount  (\u{20B9})',
                       hintStyle: TextStyle(
@@ -327,11 +333,15 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       ),
                       child: TextField(
                         controller: _categoryController,
-                        style:
-                            const TextStyle(color: Colors.white, fontSize: 14),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
                         decoration: InputDecoration(
                           contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 12),
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
                           border: InputBorder.none,
                           hintText: 'New category Name',
                           hintStyle: TextStyle(
@@ -359,8 +369,11 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         color: AppTextStyles.primaryButtonColor,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child:
-                          const Icon(Icons.add, color: Colors.white, size: 22),
+                      child: const Icon(
+                        Icons.add,
+                        color: Colors.white,
+                        size: 22,
+                      ),
                     ),
                   ),
                 ],
@@ -381,8 +394,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                               height: 1,
                             ),
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 10),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
                               child: Row(
                                 children: [
                                   Expanded(
@@ -396,14 +408,14 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                   ),
                                   GestureDetector(
                                     onTap: () {
-                                      context
-                                          .read<CategoryBloc>()
-                                          .add(DeleteCategory(cat.id));
+                                      context.read<CategoryBloc>().add(
+                                        DeleteCategory(cat.id),
+                                      );
                                     },
                                     child: Image.asset(
                                       'assets/images/icons/ic_delete_cat.png',
-                                      width: 20,
-                                      height: 20,
+                                      width: 30,
+                                      height: 30,
                                       color: const Color(0xFFFF4444),
                                       fit: BoxFit.contain,
                                     ),
@@ -519,27 +531,35 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         onTap: () {
           context.read<AuthBloc>().add(const AuthLogout());
         },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Log Out',
-              style: TextStyle(
-                color: Colors.redAccent.withValues(alpha: 0.9),
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+            borderRadius: BorderRadius.circular(14),
+          ),
+
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Log Out',
+                style: TextStyle(
+                  color: Colors.redAccent.withValues(alpha: 0.9),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-            const SizedBox(width: 6),
-            Image.asset(
-              'assets/images/icons/ic_logout.png',
-              width: 18,
-              height: 18,
-              color: Colors.redAccent.withValues(alpha: 0.9),
-              fit: BoxFit.contain,
-            ),
-          ],
+              const SizedBox(width: 6),
+              Image.asset(
+                'assets/images/icons/ic_logout.png',
+                width: 18,
+                height: 18,
+                color: Colors.redAccent.withValues(alpha: 0.9),
+                fit: BoxFit.contain,
+              ),
+            ],
+          ),
         ),
       ),
     );

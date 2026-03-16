@@ -21,7 +21,9 @@ class TransactionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final amountColor = isExpense ? const Color(0xFFFF4444) : const Color(0xFF4CAF50);
+    final amountColor = isExpense
+        ? const Color(0xFFFF4444)
+        : const Color(0xFF4CAF50);
     final amountPrefix = isExpense ? '-' : '+';
 
     return Container(
@@ -35,16 +37,16 @@ class TransactionCard extends StatelessWidget {
         children: [
           // Left icon
           Container(
-            width: 40,
-            height: 40,
+            width: 30,
+            height: 30,
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Image.asset(
               'assets/images/icons/ic_cart.png',
-              width: 20,
-              height: 20,
+              width: 10,
+              height: 10,
               color: Colors.white.withValues(alpha: 0.6),
               fit: BoxFit.contain,
             ),
@@ -102,8 +104,8 @@ class TransactionCard extends StatelessWidget {
           GestureDetector(
             onTap: onDelete,
             child: Container(
-              width: 28,
-              height: 28,
+              width: 20,
+              height: 20,
               decoration: BoxDecoration(
                 color: const Color(0xFFFF4444).withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(6),
