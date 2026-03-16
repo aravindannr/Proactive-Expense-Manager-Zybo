@@ -1,4 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:proactive_expense_manager/presentation/bloc/auth/auth_bloc.dart';
+import 'package:proactive_expense_manager/presentation/bloc/auth/auth_event.dart';
+import 'package:proactive_expense_manager/presentation/bloc/auth/auth_state.dart';
+import 'package:proactive_expense_manager/presentation/bloc/category/category_bloc.dart';
+import 'package:proactive_expense_manager/presentation/bloc/category/category_event.dart';
+import 'package:proactive_expense_manager/presentation/bloc/category/category_state.dart';
+import 'package:proactive_expense_manager/presentation/bloc/sync/sync_bloc.dart';
+import 'package:proactive_expense_manager/presentation/bloc/sync/sync_event.dart';
+import 'package:proactive_expense_manager/presentation/bloc/sync/sync_state.dart';
+import 'package:proactive_expense_manager/presentation/bloc/transaction/transaction_bloc.dart';
+import 'package:proactive_expense_manager/presentation/bloc/transaction/transaction_event.dart';
+import 'package:proactive_expense_manager/presentation/screens/auth/login_screen.dart';
 import 'package:proactive_expense_manager/presentation/theme/app_text_styles.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
@@ -9,13 +23,51 @@ class ProfileSettingsScreen extends StatefulWidget {
 }
 
 class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
-  final TextEditingController _nicknameController =
-      TextEditingController(text: 'Naazley');
+  final TextEditingController _nicknameController = TextEditingController();
   final TextEditingController _alertLimitController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
 
   int _currentLimit = 1000;
-  final List<String> _categories = ['Food', 'Bills', 'Transport', 'Shopping'];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    final nickname = prefs.getString('nickname') ?? '';
+    final limit = prefs.getInt('alert_limit') ?? 1000;
+    setState(() {
+      _nicknameController.text = nickname;
+      _currentLimit = limit;
+    });
+  }
+
+  Future<void> _saveNickname() async {
+    final nickname = _nicknameController.text.trim();
+    if (nickname.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('nickname', nickname);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nickname updated'), duration: Duration(seconds: 1)),
+      );
+    }
+  }
+
+  Future<void> _setAlertLimit() async {
+    final value = int.tryParse(_alertLimitController.text);
+    if (value != null && value > 0) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('alert_limit', value);
+      setState(() {
+        _currentLimit = value;
+        _alertLimitController.clear();
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -27,93 +79,93 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 16),
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<AuthBloc, AuthState>(
+          listener: (context, state) {
+            if (state is AuthUnauthenticated) {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
+            }
+          },
+        ),
+        BlocListener<SyncBloc, SyncState>(
+          listener: (context, state) {
+            if (state is SyncSuccess) {
+              // Reload data after sync
+              context.read<CategoryBloc>().add(const LoadCategories());
+              context.read<TransactionBloc>().add(const LoadTransactions());
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Sync completed successfully!'),
+                  backgroundColor: Color(0xFF4CAF50),
+                ),
+              );
+            } else if (state is SyncError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Sync failed: ${state.message}'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+        ),
+      ],
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
 
-          // Header
-          const Text(
-            'Profile & Settings',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
+            // Header
+            const Text(
+              'Profile & Settings',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
 
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-          // Section 1: Nickname
-          _NicknameSection(controller: _nicknameController),
+            // Section 1: Nickname
+            _buildNicknameSection(),
 
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-          // Section 2: Alert Limit
-          _AlertLimitSection(
-            controller: _alertLimitController,
-            currentLimit: _currentLimit,
-            onSet: () {
-              final value = int.tryParse(_alertLimitController.text);
-              if (value != null && value > 0) {
-                setState(() {
-                  _currentLimit = value;
-                  _alertLimitController.clear();
-                });
-              }
-            },
-          ),
+            // Section 2: Alert Limit
+            _buildAlertLimitSection(),
 
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-          // Section 3: Categories
-          _CategoriesSection(
-            categories: _categories,
-            controller: _categoryController,
-            onAdd: () {
-              final name = _categoryController.text.trim();
-              if (name.isNotEmpty) {
-                setState(() {
-                  _categories.add(name);
-                  _categoryController.clear();
-                });
-              }
-            },
-            onDelete: (index) {
-              setState(() {
-                _categories.removeAt(index);
-              });
-            },
-          ),
+            // Section 3: Categories
+            _buildCategoriesSection(),
 
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-          // Section 4: Cloud Sync
-          const _CloudSyncSection(),
+            // Section 4: Cloud Sync
+            _buildCloudSyncSection(),
 
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-          // Section 5: Logout
-          const _LogoutButton(),
+            // Section 5: Logout
+            _buildLogoutButton(),
 
-          const SizedBox(height: 100),
-        ],
+            const SizedBox(height: 100),
+          ],
+        ),
       ),
     );
   }
-}
 
-// ─── Section 1: Nickname ─────────────────────────────────────────────
+  // ─── Section 1: Nickname ─────────────────────────────────────────────
 
-class _NicknameSection extends StatelessWidget {
-  final TextEditingController controller;
-
-  const _NicknameSection({required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildNicknameSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -133,7 +185,7 @@ class _NicknameSection extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
           ),
           child: TextField(
-            controller: controller,
+            controller: _nicknameController,
             style: const TextStyle(color: Colors.white, fontSize: 16),
             decoration: InputDecoration(
               contentPadding:
@@ -141,13 +193,11 @@ class _NicknameSection extends StatelessWidget {
               border: InputBorder.none,
               suffixIcon: IconButton(
                 icon: Icon(
-                  Icons.edit,
+                  Icons.check,
                   color: Colors.white.withValues(alpha: 0.5),
                   size: 20,
                 ),
-                onPressed: () {
-                  // TODO: Enable editing
-                },
+                onPressed: _saveNickname,
               ),
             ),
           ),
@@ -155,23 +205,10 @@ class _NicknameSection extends StatelessWidget {
       ],
     );
   }
-}
 
-// ─── Section 2: Alert Limit ──────────────────────────────────────────
+  // ─── Section 2: Alert Limit ──────────────────────────────────────────
 
-class _AlertLimitSection extends StatelessWidget {
-  final TextEditingController controller;
-  final int currentLimit;
-  final VoidCallback onSet;
-
-  const _AlertLimitSection({
-    required this.controller,
-    required this.currentLimit,
-    required this.onSet,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildAlertLimitSection() {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -200,7 +237,7 @@ class _AlertLimitSection extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: TextField(
-                    controller: controller,
+                    controller: _alertLimitController,
                     keyboardType: TextInputType.number,
                     style: const TextStyle(color: Colors.white, fontSize: 14),
                     decoration: InputDecoration(
@@ -220,7 +257,7 @@ class _AlertLimitSection extends StatelessWidget {
               SizedBox(
                 height: 44,
                 child: ElevatedButton(
-                  onPressed: onSet,
+                  onPressed: _setAlertLimit,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTextStyles.primaryButtonColor,
                     foregroundColor: Colors.white,
@@ -240,7 +277,7 @@ class _AlertLimitSection extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Current Limit: \u{20B9}${_formatAmount(currentLimit)}',
+            'Current Limit: \u{20B9}${_formatAmount(_currentLimit)}',
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.5),
               fontSize: 13,
@@ -251,39 +288,9 @@ class _AlertLimitSection extends StatelessWidget {
     );
   }
 
-  String _formatAmount(int amount) {
-    final str = amount.toString();
-    final result = StringBuffer();
-    int count = 0;
-    for (int i = str.length - 1; i >= 0; i--) {
-      result.write(str[i]);
-      count++;
-      if (count == 3 && i > 0) {
-        result.write(',');
-        count = 0;
-      }
-    }
-    return result.toString().split('').reversed.join();
-  }
-}
+  // ─── Section 3: Categories ───────────────────────────────────────────
 
-// ─── Section 3: Categories ───────────────────────────────────────────
-
-class _CategoriesSection extends StatelessWidget {
-  final List<String> categories;
-  final TextEditingController controller;
-  final VoidCallback onAdd;
-  final void Function(int index) onDelete;
-
-  const _CategoriesSection({
-    required this.categories,
-    required this.controller,
-    required this.onAdd,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildCategoriesSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -315,7 +322,7 @@ class _CategoriesSection extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: TextField(
-                        controller: controller,
+                        controller: _categoryController,
                         style:
                             const TextStyle(color: Colors.white, fontSize: 14),
                         decoration: InputDecoration(
@@ -333,7 +340,13 @@ class _CategoriesSection extends StatelessWidget {
                   ),
                   const SizedBox(width: 10),
                   GestureDetector(
-                    onTap: onAdd,
+                    onTap: () {
+                      final name = _categoryController.text.trim();
+                      if (name.isNotEmpty) {
+                        context.read<CategoryBloc>().add(AddCategory(name));
+                        _categoryController.clear();
+                      }
+                    },
                     child: Container(
                       width: 40,
                       height: 40,
@@ -348,70 +361,81 @@ class _CategoriesSection extends StatelessWidget {
                 ],
               ),
 
-              // Category list
-              ...List.generate(categories.length, (index) {
-                return Column(
-                  children: [
-                    const SizedBox(height: 4),
-                    Divider(
-                      color: Colors.white.withValues(alpha: 0.08),
-                      height: 1,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              categories[index],
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 15,
+              // Category list from BLoC
+              BlocBuilder<CategoryBloc, CategoryState>(
+                builder: (context, state) {
+                  if (state is CategoryLoaded) {
+                    return Column(
+                      children: List.generate(state.categories.length, (index) {
+                        final cat = state.categories[index];
+                        return Column(
+                          children: [
+                            const SizedBox(height: 4),
+                            Divider(
+                              color: Colors.white.withValues(alpha: 0.08),
+                              height: 1,
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 10),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      cat.name,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      context
+                                          .read<CategoryBloc>()
+                                          .add(DeleteCategory(cat.id));
+                                    },
+                                    child: Container(
+                                      width: 32,
+                                      height: 32,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: const Color(0xFFFF4444),
+                                          width: 1,
+                                        ),
+                                        borderRadius:
+                                            BorderRadius.circular(8),
+                                      ),
+                                      child: Image.asset(
+                                        'assets/images/icons/ic_delete.png',
+                                        width: 18,
+                                        height: 18,
+                                        color: const Color(0xFFFF4444),
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
-                          GestureDetector(
-                            onTap: () => onDelete(index),
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: const Color(0xFFFF4444),
-                                  width: 1,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Image.asset(
-                                'assets/images/icons/ic_delete.png',
-                                width: 18,
-                                height: 18,
-                                color: const Color(0xFFFF4444),
-                                fit: BoxFit.contain,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              }),
+                          ],
+                        );
+                      }),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
             ],
           ),
         ),
       ],
     );
   }
-}
 
-// ─── Section 4: Cloud Sync ───────────────────────────────────────────
+  // ─── Section 4: Cloud Sync ───────────────────────────────────────────
 
-class _CloudSyncSection extends StatelessWidget {
-  const _CloudSyncSection();
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildCloudSyncSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -425,65 +449,82 @@ class _CloudSyncSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTextStyles.primaryButtonColor,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        BlocBuilder<SyncBloc, SyncState>(
+          builder: (context, state) {
+            final isSyncing = state is SyncInProgress;
+            return GestureDetector(
+              onTap: isSyncing
+                  ? null
+                  : () => context.read<SyncBloc>().add(const StartSync()),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTextStyles.primaryButtonColor,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
                   children: [
-                    const Text(
-                      'Sync To Cloud',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isSyncing ? 'Syncing...' : 'Sync To Cloud',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            isSyncing
+                                ? (state as SyncInProgress).stage
+                                : 'Sync and update data to the backend',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.7),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Sync and update data to the backend',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
-                        fontSize: 12,
+                    const SizedBox(width: 12),
+                    if (isSyncing)
+                      const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    else
+                      Image.asset(
+                        'assets/images/icons/ic_cloud.png',
+                        width: 28,
+                        height: 28,
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fit: BoxFit.contain,
                       ),
-                    ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
-              Image.asset(
-                'assets/images/icons/ic_cloud.png',
-                width: 28,
-                height: 28,
-                color: Colors.white.withValues(alpha: 0.9),
-                fit: BoxFit.contain,
-              ),
-            ],
-          ),
+            );
+          },
         ),
       ],
     );
   }
-}
 
-// ─── Section 5: Logout Button ────────────────────────────────────────
+  // ─── Section 5: Logout Button ────────────────────────────────────────
 
-class _LogoutButton extends StatelessWidget {
-  const _LogoutButton();
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildLogoutButton() {
     return Center(
       child: GestureDetector(
         onTap: () {
-          // TODO: Implement logout
+          context.read<AuthBloc>().add(const AuthLogout());
         },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -509,5 +550,20 @@ class _LogoutButton extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatAmount(int amount) {
+    final str = amount.toString();
+    final result = StringBuffer();
+    int count = 0;
+    for (int i = str.length - 1; i >= 0; i--) {
+      result.write(str[i]);
+      count++;
+      if (count == 3 && i > 0) {
+        result.write(',');
+        count = 0;
+      }
+    }
+    return result.toString().split('').reversed.join();
   }
 }

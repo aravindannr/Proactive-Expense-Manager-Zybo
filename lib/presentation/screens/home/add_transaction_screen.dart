@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:proactive_expense_manager/presentation/bloc/category/category_bloc.dart';
+import 'package:proactive_expense_manager/presentation/bloc/category/category_state.dart';
+import 'package:proactive_expense_manager/presentation/bloc/transaction/transaction_bloc.dart';
+import 'package:proactive_expense_manager/presentation/bloc/transaction/transaction_event.dart';
 import 'package:proactive_expense_manager/presentation/theme/app_text_styles.dart';
 import 'package:proactive_expense_manager/presentation/widgets/category_chip.dart';
 
@@ -14,9 +19,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   bool _isExpense = true;
-  int _selectedCategoryIndex = 1;
-
-  final List<String> _categories = ['Food', 'Bills', 'Transport', 'Shopping'];
+  String? _selectedCategoryId;
 
   @override
   void dispose() {
@@ -26,7 +29,28 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   void _onSave() {
-    // TODO: Save transaction logic
+    final note = _titleController.text.trim();
+    final amountText = _amountController.text.trim();
+    if (note.isEmpty || amountText.isEmpty || _selectedCategoryId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill all fields and select a category'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final amount = double.tryParse(amountText);
+    if (amount == null || amount <= 0) return;
+
+    context.read<TransactionBloc>().add(AddTransaction(
+          amount: amount,
+          note: note,
+          type: _isExpense ? 'debit' : 'credit',
+          categoryId: _selectedCategoryId!,
+        ));
+
     Navigator.of(context).pop();
   }
 
@@ -211,17 +235,40 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
           const SizedBox(height: 10),
 
-          // Category chips
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: List.generate(_categories.length, (index) {
-              return CategoryChip(
-                label: _categories[index],
-                isSelected: _selectedCategoryIndex == index,
-                onTap: () => setState(() => _selectedCategoryIndex = index),
+          // Category chips from BLoC
+          BlocBuilder<CategoryBloc, CategoryState>(
+            builder: (context, state) {
+              if (state is CategoryLoaded && state.categories.isNotEmpty) {
+                // Auto-select first if none selected
+                if (_selectedCategoryId == null) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted && _selectedCategoryId == null) {
+                      setState(() {
+                        _selectedCategoryId = state.categories.first.id;
+                      });
+                    }
+                  });
+                }
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: state.categories.map((cat) {
+                    return CategoryChip(
+                      label: cat.name,
+                      isSelected: _selectedCategoryId == cat.id,
+                      onTap: () => setState(() => _selectedCategoryId = cat.id),
+                    );
+                  }).toList(),
+                );
+              }
+              return Text(
+                'No categories. Add from Profile settings.',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.4),
+                  fontSize: 13,
+                ),
               );
-            }),
+            },
           ),
 
           const SizedBox(height: 20),
