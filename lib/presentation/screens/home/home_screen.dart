@@ -436,6 +436,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildBottomNav() {
     return Align(
       alignment: Alignment.bottomCenter,
+      heightFactor: 1.0,
       child: Container(
         width: MediaQuery.of(context).size.width * 0.55,
         margin: const EdgeInsets.only(bottom: 24),
